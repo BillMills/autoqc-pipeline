@@ -215,6 +215,74 @@ def plotRow(row, figdir):
     plt.close()
 
 
+def plot_uid_pathology(uid, table, database='iquod.db'):
+
+    # extract and parse row
+    conn = sqlite3.connect(database, isolation_level=None)
+    cur = conn.cursor()
+    query = 'SELECT * FROM ' + table +' WHERE uid=' + str(uid)
+    cur.execute(query)
+    rawresults = cur.fetchall()
+    df = pandas.DataFrame(rawresults).astype('str')
+    df.columns = [description[0] for description in cur.description]
+    testNames = main.importQC('qctests')
+    testNames = [t.lower() for t in testNames]
+    for t in testNames:
+        df[[t]] = df[[t]].apply(dbutils.parse)
+    def unpack_truth(results):
+        return results.apply(dbutils.unpack_qc)
+    truth = df[['truth']].apply(unpack_truth).values.tolist()
+    df = df.assign(leveltruth=pandas.Series(truth))
+    df[['truth']] = df[['truth']].apply(dbutils.parse_truth)
+
+    plotPathology(df.ix[0], '.')
+
+def plotPathology(row, figdir):
+    '''
+    look for a transition from all good to all bad, and plot that region
+    just do plotRow if no such transition is found. 
+    '''
+
+    p = main.text2wod(row['raw'][1:-1])
+    def cat(flag):
+        if flag == 3 or flag == 4:
+            return True
+        else:
+            return False
+    category = [cat(x) for x in row['leveltruth'][0]]
+    total = sum(category)
+    if sum(category[len(category)-total:]) != total:
+        plotRow(row, figdir)
+        return 0
+
+    z_transition = p.z()[len(category) - total]
+    t_transition = p.t()[len(category) - total]
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    im = ax1.scatter(p.z(),p.t(), c=row['leveltruth'][0], norm=matplotlib.colors.Normalize(vmin=1, vmax=10), cmap='tab10')
+    fig.colorbar(im, ax=ax1)
+    plt.xlabel('Depth [m]')
+    plt.ylabel('Temperature [C]')
+    plt.title(str(p.uid()))
+    range = plt.ylim()
+    plt.ylim(t_transition-1, t_transition+1 )
+    range = plt.ylim()
+    dom = plt.xlim()
+    plt.xlim(z_transition-20, z_transition+20)
+    dom = plt.xlim()
+    xmargin = (dom[1] - dom[0])*0.7 + dom[0]
+    yspace = (range[1] - range[0])*0.05
+    ymargin = (range[1] - range[0])*0.95 + range[0]
+    plt.text(xmargin,ymargin - 2*yspace, 'Lat: ' + str(p.latitude()))
+    plt.text(xmargin,ymargin - 3*yspace, 'Long: ' + str(p.longitude()))
+    plt.text(xmargin,ymargin - 4*yspace, 'Probe: ' + str(p.probe_type()))
+    plt.text(xmargin,ymargin - 5*yspace, 'Date: ' + str(p.year()) + '/' + str(p.month()) + '/' + str(p.day())    )
+    plt.text(xmargin,ymargin - 6*yspace, 'Originator: ' + str(p.originator_flag_type()))
+    plt.text(xmargin,ymargin - 7*yspace, 'Instrument: ' + str(probe_detail(p)))
+    pylab.savefig(figdir + '/' + str(p.uid()) + '.png', bbox_inches='tight')
+    plt.close()
+
 def probe_detail(p):
     '''
     given a wodpy profile p,

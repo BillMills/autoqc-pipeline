@@ -15,3 +15,5 @@ COPY plots.py /AutoQC/plots.py
 COPY experimental-qc.sh experimental-qc.sh
 COPY optimize-classifier.sh optimize-classifier.sh
 COPY generate-plots.sh generate-plots.sh
+COPY perf-uncertainty.py perf-uncertainty.py
+COPY perf-uncertainty.sh perf-uncertainty.sh

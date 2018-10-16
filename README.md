@@ -1,7 +1,7 @@
-Containerized pipeline to amend a previously-run qc database with some new tests, and return performance and discrimination stats and plots. Usage:
+Containerized pipeline to amend a previously-run qc database with some new tests, and return performance and discrimination stats and plots. Run as an interactive environment:
 
 ```
-docker container run -it -v $(pwd)/new-tests:/AutoQC/dev thisimage <script>
+docker container run -it -v $(pwd)/new-tests:/AutoQC/dev thisimage bash
 ```
 
 where `$(pwd)/new-tests/qctests` has the new qc tests to be integrated, and $(pwd)/new-tests/iquod.db has the database with the canonical tests pre-evaluated. All analysis artefacts will be dumped to `$(pwd)/new-tests`.
