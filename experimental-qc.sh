@@ -1,4 +1,5 @@
 cp /AutoQC/dev/qctests/* /AutoQC/qctests/.
+mv /AutoQC/dev/iquod.db iquod.db
 
 # make columns for tests in iquod table
 python amend_columns.py /AutoQC/dev/qctests
@@ -16,6 +17,8 @@ mv autoqc-logs* /AutoQC/dev/.
 # summarize individual test performance
 python summarize-results.py quota > summarize-results.dat
 mv summarize-results.dat /AutoQC/dev/summarize-results.dat
+
+mv iquod.db /AutoQC/dev/iquod.db
 
 # system logging
 
