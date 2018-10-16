@@ -1,14 +1,6 @@
 import util.post as post
-import util.main as main
-import json, sqlite3
 
-with open('catchall.json') as json_data:
-    d = json.load(json_data)
-tests = d['tests']
 tablename = 'quota'
-
-# add TP/TN/FP/FN category column
-post.append_category(tests, tablename)
 
 # plotting subsets
 df = post.query2df(['raw', 'truth'], 'category=0 and training=0', tablename)
